@@ -31,6 +31,9 @@ SENDGRID_PORT = 587
 SENDGRID_USERNAME = os.environ.get('SENDGRID_USERNAME', '')
 SENDGRID_PASSWORD = os.environ.get('SENDGRID_PASSWORD', '')
 
+ERROR_EMAIL_FROM = os.environ.get('ERROR_EMAIL_FROM', '')
+ERROR_EMAIL_RECIPIENTS = os.environ.get('ERROR_EMAIL_RECIPIENTS', '')
+
 # if running in debug mode (i.e. locally) get from .env
 if app.debug:
     dotenv_path = os.path.join(os.path.dirname(__file__), '.env')
@@ -38,9 +41,8 @@ if app.debug:
 
 sentry = Sentry(app, dsn=SENTRY_DSN)
 
-ADMINS = ['kevin@activefrequency.com']
 if not app.debug:
-    mail_handler = SMTPHandler(mailhost=(SENDGRID_HOST, SENDGRID_PORT), fromaddr='kevin@activefrequency.com', toaddrs=ADMINS,
+    mail_handler = SMTPHandler(mailhost=(SENDGRID_HOST, SENDGRID_PORT), fromaddr=ERROR_EMAIL_FROM, toaddrs=ERROR_EMAIL_RECIPIENTS.split(','),
         subject="Tranquilo: Shopify-MDS Error", credentials=(SENDGRID_USERNAME, SENDGRID_PASSWORD), secure=())
     mail_handler.setLevel(logging.ERROR)
     app.logger.addHandler(mail_handler)

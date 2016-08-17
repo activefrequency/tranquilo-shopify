@@ -175,6 +175,8 @@ def webhook():
     except:
         app.logger.exception(u"Problem sending Order #{} to MDS. Response: {}.".format(str(data['order_number']), r.text))
 
+    app.logger.info(u"Order #{} successfully sent to MDS.".format(str(data['order_number'])))
+
     # tell Shopify all is right with the world
     return "OK"
 

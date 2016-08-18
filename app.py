@@ -73,6 +73,16 @@ def webhook():
 
     app.logger.debug("Got Shopify webhook")
 
+    # if it's a refund, stop
+    if data.get('refunds', ''):
+        app.logger.exception(u"Discarding order #{} from Shopify: refund.".format(str(data['order_number'])))
+        return "OK"
+
+    # if it doesn't have a shipping address, stop
+    if not data.get('shipping_address', ''):
+        app.logger.exception(u"Problem processing order #{} from Shopify: no shipping address.".format(str(data['order_number'])))
+        return "OK"
+
     # got the webhook from Shopify - now construct the request to MDS
     root = Element('MDSOrder')
     root.set('xml:lang', 'en-US')
@@ -93,43 +103,45 @@ def webhook():
         OrderDate = SubElement(Order, 'OrderDate')
         OrderDate.text = datetime.datetime.strptime(data['created_at'][0:10], '%Y-%m-%d').strftime('%m/%d/%Y')
 
-        ShipCompany = SubElement(Order, 'ShipCompany')
-        ShipCompany.text = data['shipping_address']['company']
-        Shipname = SubElement(Order, 'Shipname')
-        Shipname.text = data['shipping_address']['name']
-        ShipAddress1 = SubElement(Order, 'ShipAddress1')
-        ShipAddress1.text = data['shipping_address']['address1']
-        ShipAddress2 = SubElement(Order, 'ShipAddress2')
-        ShipAddress2.text = data['shipping_address']['address2']
-        ShipCity = SubElement(Order, 'ShipCity')
-        ShipCity.text = data['shipping_address']['city']
-        ShipState = SubElement(Order, 'ShipState')
-        ShipState.text = data['shipping_address']['province_code']
-        ShipCountry = SubElement(Order, 'ShipCountry')
-        ShipCountry.text = data['shipping_address']['country_code']
-        ShipZip = SubElement(Order, 'ShipZip')
-        ShipZip.text = data['shipping_address']['zip']
-        ShipPhone = SubElement(Order, 'ShipPhone')
-        ShipPhone.text = data['shipping_address']['phone']
-        ShipEmail = SubElement(Order, 'ShipEmail')
-        ShipEmail.text = data['contact_email']
+        if data.get('shipping_address', ''):
+            ShipCompany = SubElement(Order, 'ShipCompany')
+            ShipCompany.text = data['shipping_address']['company']
+            Shipname = SubElement(Order, 'Shipname')
+            Shipname.text = data['shipping_address']['name']
+            ShipAddress1 = SubElement(Order, 'ShipAddress1')
+            ShipAddress1.text = data['shipping_address']['address1']
+            ShipAddress2 = SubElement(Order, 'ShipAddress2')
+            ShipAddress2.text = data['shipping_address']['address2']
+            ShipCity = SubElement(Order, 'ShipCity')
+            ShipCity.text = data['shipping_address']['city']
+            ShipState = SubElement(Order, 'ShipState')
+            ShipState.text = data['shipping_address']['province_code']
+            ShipCountry = SubElement(Order, 'ShipCountry')
+            ShipCountry.text = data['shipping_address']['country_code']
+            ShipZip = SubElement(Order, 'ShipZip')
+            ShipZip.text = data['shipping_address']['zip']
+            ShipPhone = SubElement(Order, 'ShipPhone')
+            ShipPhone.text = data['shipping_address']['phone']
+            ShipEmail = SubElement(Order, 'ShipEmail')
+            ShipEmail.text = data['contact_email']
 
-        BillCompany = SubElement(Order, 'BillCompany')
-        BillCompany.text = data['billing_address']['company']
-        Billname = SubElement(Order, 'Billname')
-        Billname.text = data['billing_address']['name']
-        BillAddress1 = SubElement(Order, 'BillAddress1')
-        BillAddress1.text = data['billing_address']['address1']
-        BillAddress2 = SubElement(Order, 'BillAddress2')
-        BillAddress2.text = data['billing_address']['address2']
-        BillCity = SubElement(Order, 'BillCity')
-        BillCity.text = data['billing_address']['city']
-        BillState = SubElement(Order, 'BillState')
-        BillState.text = data['billing_address']['province_code']
-        BillCountry = SubElement(Order, 'BillCountry')
-        BillCountry.text = data['billing_address']['country_code']
-        BillZip = SubElement(Order, 'BillZip')
-        BillZip.text = data['billing_address']['zip']
+        if data.get('billing_address', ''):
+            BillCompany = SubElement(Order, 'BillCompany')
+            BillCompany.text = data['billing_address']['company']
+            Billname = SubElement(Order, 'Billname')
+            Billname.text = data['billing_address']['name']
+            BillAddress1 = SubElement(Order, 'BillAddress1')
+            BillAddress1.text = data['billing_address']['address1']
+            BillAddress2 = SubElement(Order, 'BillAddress2')
+            BillAddress2.text = data['billing_address']['address2']
+            BillCity = SubElement(Order, 'BillCity')
+            BillCity.text = data['billing_address']['city']
+            BillState = SubElement(Order, 'BillState')
+            BillState.text = data['billing_address']['province_code']
+            BillCountry = SubElement(Order, 'BillCountry')
+            BillCountry.text = data['billing_address']['country_code']
+            BillZip = SubElement(Order, 'BillZip')
+            BillZip.text = data['billing_address']['zip']
 
         OrderTotal = SubElement(Order, 'OrderTotal')
         OrderTotal.text = data['total_price']
@@ -154,7 +166,7 @@ def webhook():
             Qty.text = str(line['quantity'])
     except KeyError:
         # if we can't parse the order, stop and tell Shopify it's OK
-        app.logger.exception(u"Problem parsing order #{} from Shopify.")
+        app.logger.exception(u"Problem parsing order #{} from Shopify.".format(str(data['order_number'])))
         return "OK"
 
     xml_string = tostring(root, method='xml', encoding='UTF-8')

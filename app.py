@@ -46,6 +46,7 @@ sentry = Sentry(app, dsn=SENTRY_DSN)
 
 # add StreamHandler
 stdout_handler = StreamHandler(sys.stdout)
+stdout_handler.setLevel(logging.INFO)
 app.logger.addHandler(stdout_handler)
 
 if not app.debug:

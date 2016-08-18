@@ -4,12 +4,13 @@ import hashlib
 import base64
 import hmac
 import os
+import sys
 import datetime
 import requests
 import xmltodict
 import logging
 
-from logging.handlers import SMTPHandler
+from logging.handlers import SMTPHandler, StreamHandler
 from dotenv import load_dotenv
 from raven.contrib.flask import Sentry
 from xml.etree.ElementTree import Element, SubElement, tostring
@@ -41,6 +42,10 @@ if app.debug:
     load_dotenv(dotenv_path)
 
 sentry = Sentry(app, dsn=SENTRY_DSN)
+
+# add StreamHandler
+stdout_handler = StreamHandler(sys.stdout)
+app.logger.addHandler(stdout_handler)
 
 if not app.debug:
     mail_handler = SMTPHandler(mailhost=(SENDGRID_HOST, SENDGRID_PORT), fromaddr=ERROR_EMAIL_FROM, toaddrs=ERROR_EMAIL_RECIPIENTS.split(','),

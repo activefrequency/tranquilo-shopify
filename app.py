@@ -49,9 +49,8 @@ stdout_handler = StreamHandler(sys.stdout)
 stdout_handler.setLevel(logging.INFO)
 app.logger.addHandler(stdout_handler)
 
-stderr_handler = StreamHandler(sys.stderr)
-stderr_handler.setLevel(logging.DEBUG)
-app.logger.addHandler(stderr_handler)
+# set app.loger level to INFO - otherwise Flask sets it to WARNING
+app.logger.setLevel(logging.INFO)
 
 if not app.debug:
     mail_handler = SMTPHandler(mailhost=(SENDGRID_HOST, SENDGRID_PORT), fromaddr=ERROR_EMAIL_FROM, toaddrs=ERROR_EMAIL_RECIPIENTS.split(','),
@@ -69,9 +68,6 @@ def _hmac_is_valid(secret, body, hmac_to_verify):
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    app.logger.debug("Debug log")
-    app.logger.info("Info log")
-
     # validate the request
     try:
         webhook_hmac = request.headers['X-Shopify-Hmac-Sha256']

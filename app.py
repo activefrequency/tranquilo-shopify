@@ -201,11 +201,9 @@ def webhook():
     try:
         # this might be a KeyError or AssertionError, but either way we want to know about it and see the response
         assert resp['CUSTOrderAck']['OrderAck']['Result'] == '1'
-        app.logger.info(u"Sent Order #{} to MDS".format(str(data['order_number'])))
+        app.logger.info(u"Order #{} successfully sent to MDS.".format(str(data['order_number'])))
     except:
         app.logger.exception(u"Problem sending Order #{} to MDS. Response: {}.".format(str(data['order_number']), r.text))
-
-    app.logger.info(u"Order #{} successfully sent to MDS.".format(str(data['order_number'])))
 
     # tell Shopify all is right with the world
     return "OK"

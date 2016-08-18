@@ -10,7 +10,8 @@ import requests
 import xmltodict
 import logging
 
-from logging.handlers import SMTPHandler, StreamHandler
+from logging.handlers import SMTPHandler
+from logging import StreamHandler
 from dotenv import load_dotenv
 from raven.contrib.flask import Sentry
 from xml.etree.ElementTree import Element, SubElement, tostring

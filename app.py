@@ -8,6 +8,7 @@ import datetime
 import requests
 import xmltodict
 import logging
+
 from logging.handlers import SMTPHandler
 from dotenv import load_dotenv
 from raven.contrib.flask import Sentry

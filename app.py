@@ -160,7 +160,13 @@ def webhook():
 
         Lines = SubElement(Order, "Lines")
         line_item_num = 0
+        wholesale_lines = 0
         for line in data['line_items']:
+            # if the SKU starts with "WS", then it's wholesale - exclude it from this order
+            if line['sku'].startswith("WS"):
+                wholesale_lines += 1
+                continue
+
             line_item_num += 1
             Line = SubElement(Lines, "Line", {'number': str(line_item_num).zfill(3)})
 
@@ -177,6 +183,13 @@ def webhook():
     except KeyError:
         # if we can't parse the order, stop and tell Shopify it's OK
         app.logger.exception(u"Problem parsing order #{} from Shopify.".format(str(data['order_number'])))
+        return "OK"
+
+    if wholesale_lines > 0:
+        app.logger.info(u"Ignoring {} wholesale lines in order #{} from Shopify.".format(str(wholesale_lines), str(data['order_number'])))
+
+    if line_item_num == 0:
+        app.logger.info(u"Ignoring order #{} from Shopify - all wholesale.".format(str(data['order_number'])))
         return "OK"
 
     xml_string = tostring(root, method='xml', encoding='UTF-8')

@@ -106,8 +106,10 @@ def webhook():
     Order = SubElement(root, 'Order')
 
     try:
-        Test = SubElement(Order, 'Test')
-        Test.text = MDS_TEST
+        # only include Test element if we're in test mode
+        if MDS_TEST == 'Y':
+            Test = SubElement(Order, 'Test')
+            Test.text = MDS_TEST
         OrderID = SubElement(Order, 'OrderID')
         OrderID.text = str(data['order_number'])
         OrderDate = SubElement(Order, 'OrderDate')

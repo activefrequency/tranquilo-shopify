@@ -54,7 +54,7 @@ app.logger.setLevel(logging.INFO)
 
 if not app.debug:
     mail_handler = SMTPHandler(mailhost=(SENDGRID_HOST, SENDGRID_PORT), fromaddr=ERROR_EMAIL_FROM, toaddrs=ERROR_EMAIL_RECIPIENTS.split(','),
-        subject="Tranquilo: Shopify-MDS Error", credentials=(SENDGRID_USERNAME, SENDGRID_PASSWORD), secure=())
+        subject="Tranquilo: Shopify-MDS Notice", credentials=(SENDGRID_USERNAME, SENDGRID_PASSWORD), secure=())
     mail_handler.setLevel(logging.ERROR)
     app.logger.addHandler(mail_handler)
 
@@ -91,6 +91,11 @@ def webhook():
     # if it doesn't have a shipping address, stop
     if not data.get('shipping_address', ''):
         app.logger.exception(u"Problem processing order #{} from Shopify: no shipping address.".format(str(data['order_number'])))
+        return "OK"
+
+    # if it's a non-US order, stop - tell Tranquilo
+    if data['shipping_address']['country_code'] != 'US':
+        app.logger.exception(u"International order #{} from Shopify - not sent to MDS.".format(str(data['order_number'])))
         return "OK"
 
     # got the webhook from Shopify - now construct the request to MDS
